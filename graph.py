@@ -1,6 +1,6 @@
 class Node:
-    def __init__(self, id, cost, predecessor=None):
-        self.id = id
+    def __init__(self, id, cost, predecessor=None, successor=None, inDegree=None, rank=None):
+        self.id = str(id)
         self.cost = int(cost)
         self.predecessor = []
         self.successor = []
@@ -115,13 +115,40 @@ class Graph:
                     tmpNodeList.remove(imaginaryNode)
                     rank += 1
 
-
     '''
+    def __copy__(self, name):
+        copied_node_list = []
+        for node in self.nodeList:
+            n = Node(node.id, node.cost, node.predecessor, node.successor, node.inDegree, node.rank)
+            copied_node_list.append(node)
+
+        return Graph(name, copied_node_list)
+
+
+    def find_node(self, id):
+        for i in range(len(self.nodeList)):
+            if id == self.nodeList[i].id:
+                return self.nodeList[i]
+        return False
+
+
     def calc_node_rank(self):
         tmpNodeList = self.nodeList.copy()
-        root = "Alpha"
+
+        # On initialise rank
         rank = 0
 
+        # On cherche le noeud racine
+        for node in tmpNodeList :
+            if not node.predecessor:
+                root = node.predecessor
+
+        # On applique l'algorithme de calcul de rang
+        while tmpNodeList != []:
+            for suc_id in root.successor:
+                for nodeAboutToGetCut in tmpNodeList:
+                    if suc_id == nodeAboutToGetCut.id:
+                        suc = nde
 
 
         '''
