@@ -1,62 +1,91 @@
+from copy import deepcopy
+
 class Node:
     def __init__(self, id, cost, predecessor=None, successor=None, inDegree=None, rank=None):
         self.id = str(id)
         self.cost = int(cost)
-        self.predecessor = []
-        self.successor = []
-        self.inDegree = 0
-        self.rank = 0
+        self.predecessor = predecessor if predecessor is not None else []
+        self.successor = successor if successor is not None else []
+        self.inDegree = inDegree
+        self.rank = rank
+
+
+    def duplicate(self, name = None):
+        d = deepcopy(self)
+        if name is not None:
+            d.id = str(name)
+        return d
+
 
     def display(self):
-        print(f"Nœud {self.id:<10}  Coût : {self.cost:<10}  Prédécesseurs : {' '.join(self.predecessor):<10}  Successeurs : {' '.join(self.successor):<10} Degrée entrant : {self.inDegree:<10} Rang : {self.rank:<10}")
+        print(
+            f"Nœud {self.id:<10}  Coût : {self.cost:<10}  Prédécesseurs : {' '.join(self.predecessor):<10}  Successeurs : {' '.join(self.successor):<10} Degrée entrant : {self.inDegree if self.inDegree is not None else 'N/A':<10} Rang : {self.rank if self.rank is not None else 'N/A':<10}")
+
 
 class Graph:
-    def __init__(self, name, file):
-        self.name = name
+    def __init__(self, name, file=None):
+        self.name = str(name)
         self.nodeList = []  # Liste des nœuds
 
-        with open(file, 'r') as f:
-            lines = f.readlines()
+        if isinstance(file, str) :
+            with open(file, 'r') as f:
+                lines = f.readlines()
 
-            for i in range(len(lines)):
+                for i in range(len(lines)):
 
-                node_data = lines[i].strip('\n') # On retire le saut à la ligne
-                node_data = node_data.split() # On sépare la chaine de caractère à chaque espace
-                node = Node(node_data[0], node_data[1])
-                if(len(node_data) > 2):
-                    node.predecessor = node_data[2:]
+                    node_data = lines[i].strip('\n') # On retire le saut à la ligne
+                    node_data = node_data.split() # On sépare la chaine de caractère à chaque espace
+                    node = Node(node_data[0], node_data[1])
+                    if(len(node_data) > 2):
+                        node.predecessor = node_data[2:]
 
-                self.nodeList.append(node)  # Ajout du nœud à la liste
+                    self.nodeList.append(node)  # Ajout du nœud à la liste
 
-        # On met à jour les successeurs
-        for node in self.nodeList:
-            for i in self.nodeList:
-                if node.id in i.predecessor:
-                    node.successor.append(i.id)
-            node.successor = list(set(node.successor))
+            # On met à jour les successeurs
+            for node in self.nodeList:
+                for i in self.nodeList:
+                    if node.id in i.predecessor:
+                        node.successor.append(i.id)
+                node.successor = list(set(node.successor))
 
-        # On ajoute Alpha et Omega
+            # On ajoute Alpha et Omega
 
-        alpha_node = Node("Alpha", 0)
-        omega_node = Node("Omega", 0)
+            alpha_node = Node("Alpha", 0)
+            omega_node = Node("Omega", 0)
 
-        # Ajouter d'Alpha en tête
-        self.nodeList.insert(0, alpha_node)
-        for node in self.nodeList[1:]:
-            if not node.predecessor:
-                node.predecessor.append("Alpha")
-                alpha_node.successor.append(node.id)
+            # Ajouter d'Alpha en tête
+            self.nodeList.insert(0, alpha_node)
+            for node in self.nodeList[1:]:
+                if not node.predecessor:
+                    node.predecessor.append("Alpha")
+                    alpha_node.successor.append(node.id)
 
-        # Ajout d'Omega en dernière position
-        self.nodeList.append(omega_node)
-        for node in self.nodeList[:-1]:
-            if not node.successor:
-                node.successor.append("Omega")
-                omega_node.predecessor.append(node.id)
+            # Ajout d'Omega en dernière position
+            self.nodeList.append(omega_node)
+            for node in self.nodeList[:-1]:
+                if not node.successor:
+                    node.successor.append("Omega")
+                    omega_node.predecessor.append(node.id)
 
-        # Calcul du degré entrant de chaque nœud
-        for node in self.nodeList:
-            node.inDegree = len(node.predecessor)
+            # Calcul du degré entrant de chaque nœud
+            for node in self.nodeList:
+                node.inDegree = len(node.predecessor)
+        else :
+            if isinstance(file, list) and all(isinstance(node, Node) for node in file):
+                self.name = name
+                self.nodeList = file
+            else:
+                print("Erreur de type")
+
+
+    def duplicate(self, name = None):
+        d = deepcopy(self)
+        if name is not None:
+            d.name = str(name)
+        return d
+
+    def duplicateNodeList(self):
+        return deepcopy(self.nodeList)
 
 
     def display_node(self):
@@ -96,34 +125,6 @@ class Graph:
                 return True
         return False
 
-    '''
-    def calc_node_rank(self):
-        tmpNodeList = self.nodeList.copy()
-        rank = 0
-
-        while tmpNodeList != []:
-            for imaginaryNode in tmpNodeList:
-                if imaginaryNode.inDegree == 0:
-                    for realNode in self.nodeList:
-                        if imaginaryNode.id == realNode.id:
-                            realNode.rank = rank
-                    for successor_id in imaginaryNode.successor:
-                        for imaginaryNode in tmpNodeList:
-                            if imaginaryNode.id == successor_id:
-                                imaginaryNode.predecessor.remove(imaginaryNode.id) if imaginaryNode.id in imaginaryNode.predecessor else None
-                                imaginaryNode.inDegree -= 1
-                    tmpNodeList.remove(imaginaryNode)
-                    rank += 1
-
-    '''
-    def __copy__(self, name):
-        copied_node_list = []
-        for node in self.nodeList:
-            n = Node(node.id, node.cost, node.predecessor, node.successor, node.inDegree, node.rank)
-            copied_node_list.append(node)
-
-        return Graph(name, copied_node_list)
-
 
     def find_node(self, id):
         for i in range(len(self.nodeList)):
@@ -131,44 +132,41 @@ class Graph:
                 return self.nodeList[i]
         return False
 
-
     def calc_node_rank(self):
-        tmpNodeList = self.nodeList.copy()
+        tmp_graph = self.duplicate("duplicate_graph")
 
         # On initialise rank
         rank = 0
 
-        # On cherche le noeud racine
-        for node in tmpNodeList :
-            if not node.predecessor:
-                root = node.predecessor
-
         # On applique l'algorithme de calcul de rang
-        while tmpNodeList != []:
-            for suc_id in root.successor:
-                for nodeAboutToGetCut in tmpNodeList:
-                    if suc_id == nodeAboutToGetCut.id:
-                        suc = nde
+        while tmp_graph.nodeList:
+            # Trouver tous les nœuds sans prédécesseurs
+            zero_in_degree_nodes = [node for node in tmp_graph.nodeList if not node.predecessor]
 
+            # Si aucun nœud sans prédécesseur n'est trouvé, il y a un cycle
+            if not zero_in_degree_nodes:
+                print("Cycle détecté, impossible de calculer les rangs")
+                return
 
-        '''
-        while tmpNodeList:
-            for node in tmpNodeList:
-                if node.inDegree == 0:
-                    for i in self.nodeList:
-                        if(node.id == i.id):
-                            i.rank = rank
-                    for successor_id in node.successor:
-                        successor = next(n for n in self.nodeList if n.id == successor_id)
-                        successor.predecessor.remove(node.id)
-                        successor.inDegree -= 1
-                    tmpNodeList.remove(node)
+            for root in zero_in_degree_nodes:
+
+                # On supprime le noeud racine des prédécésseurs des successeurs
+                for suc_id in root.successor:
+                    suc = tmp_graph.find_node(suc_id)
+                    suc.inDegree -= 1
+                    suc.predecessor.remove(root.id)
+
+                # On attribut le rang au noeud racine de la list originale
+                for i in self.nodeList:
+                    if root.id == i.id:
+                        i.rank = rank
+
+                # On supprime le noeud racine de la liste temporaire
+                tmp_graph.nodeList.remove(root)
+
             rank += 1
-            '''
-
 
     def sort_node_by_rank(self):
         self.nodeList.sort(key=lambda node: node.rank)
-
 
 
