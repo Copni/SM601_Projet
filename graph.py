@@ -9,7 +9,6 @@ class Node:
         self.inDegree = inDegree
         self.rank = rank
 
-
     def duplicate(self, name = None):
         d = deepcopy(self)
         if name is not None:
@@ -166,6 +165,7 @@ class Graph:
 
             rank += 1
 
+
     def sort_node_by_rank(self):
         self.nodeList.sort(key=lambda node: node.rank)
 
@@ -217,3 +217,27 @@ class Graph:
         for line in data_lines:
             print(line)
         print(last_line)
+
+class calendar:
+    def __init__(self, graph, name = None, earliestDate = None, latestDate = None, merge = None):
+        self.graph = graph.duplicate(graph.name)
+        self.name = name if name is not None else "Calendar"
+        self.earliestDate = {} if earliestDate is None else earliestDate
+        self.latestDate = {} if latestDate is None else latestDate
+        self.merge = {} if merge is None else merge
+
+    def calc_node_earliest(self, node):
+        if node not in self.graph.nodeList:
+            print("Le noeud n'est pas dans le graphe")
+            return False
+
+        earliestDate = 0
+        node_predecessor  = []
+        for pred in node.predecessor:
+            node_predecessor.append(self.graph.find_node(pred))
+
+        for pred in node_predecessor:
+            if pred.cost > earliestDate:
+                earliestDate = pred.cost
+
+        return
