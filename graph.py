@@ -19,7 +19,7 @@ class Node:
 
     def display(self):
         print(
-            f"Nœud {self.id:<10}  Coût : {self.cost:<10}  Prédécesseurs : {' '.join(self.predecessor):<10}  Successeurs : {' '.join(self.successor):<10} Degrée entrant : {self.inDegree if self.inDegree is not None else 'N/A':<10} Rang : {self.rank if self.rank is not None else 'N/A':<10}")
+            f"Nœud {self.id:<10}  Coût : {self.cost:<10}  Prédécesseurs : {' '.join(self.predecessor):<10}  Successeurs : {' '.join(self.successor):<10} Rang : {self.rank if self.rank is not None else 'N/A':<10}")
 
 
 class Graph:
@@ -170,3 +170,50 @@ class Graph:
         self.nodeList.sort(key=lambda node: node.rank)
 
 
+    def display_calendar(self):
+            # Trier les nœuds par rang
+            self.sort_node_by_rank()
+
+            # Définir les caractères de dessin de boîte
+            horizontal = '─'
+            vertical = '│'
+            top_left = '┌'
+            top_right = '┐'
+            bottom_left = '└'
+            bottom_right = '┘'
+            cross = '┼'
+            left_t = '├'
+            right_t = '┤'
+            top_t = '┬'
+            bottom_t = '┴'
+
+            # Construire les lignes du tableau
+            ranks = [str(node.rank) for node in self.nodeList if node.rank is not None]
+            nodes = [f"{node.id} ({node.cost})" for node in self.nodeList]
+            predecessors = [', '.join(node.predecessor) for node in self.nodeList]
+
+            # Déterminer la largeur des colonnes
+            max_rank_width = max(len("rang"), max(len(rank) for rank in ranks))
+            max_node_width = max(len("Noeud et coût"), max(len(node) for node in nodes))
+            max_pred_width = max(len("Prédécesseurs"), max(len(pred) for pred in predecessors))
+
+            # Construire la première ligne (rangs)
+            first_line = f"{top_left}{horizontal * (max_rank_width + 2)}{top_t}{horizontal * (max_node_width + 2)}{top_t}{horizontal * (max_pred_width + 2)}{top_right}"
+            second_line = f"{vertical} {'rang'.ljust(max_rank_width)} {vertical} {'Noeud et coût'.ljust(max_node_width)} {vertical} {'Prédécesseurs'.ljust(max_pred_width)} {vertical}"
+            third_line = f"{left_t}{horizontal * (max_rank_width + 2)}{cross}{horizontal * (max_node_width + 2)}{cross}{horizontal * (max_pred_width + 2)}{right_t}"
+
+            # Construire les lignes de données
+            data_lines = []
+            for rank, node, pred in zip(ranks, nodes, predecessors):
+                data_lines.append(f"{vertical} {rank.ljust(max_rank_width)} {vertical} {node.ljust(max_node_width)} {vertical} {pred.ljust(max_pred_width)} {vertical}")
+
+            # Construire la dernière ligne
+            last_line = f"{bottom_left}{horizontal * (max_rank_width + 2)}{bottom_t}{horizontal * (max_node_width + 2)}{bottom_t}{horizontal * (max_pred_width + 2)}{bottom_right}"
+
+            # Afficher le tableau
+            print(first_line)
+            print(second_line)
+            print(third_line)
+            for line in data_lines:
+                print(line)
+            print(last_line)
