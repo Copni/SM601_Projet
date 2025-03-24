@@ -226,18 +226,33 @@ class calendar:
         self.latestDate = {} if latestDate is None else latestDate
         self.merge = {} if merge is None else merge
 
-    def calc_node_earliest(self, node):
+
+    '''
+    def get_earliest_predecessor(self, node):
         if node not in self.graph.nodeList:
             print("Le noeud n'est pas dans le graphe")
             return False
 
         earliestDate = 0
-        node_predecessor  = []
+        earliestPredecessor = None
+        node_predecessor = []
         for pred in node.predecessor:
             node_predecessor.append(self.graph.find_node(pred))
 
         for pred in node_predecessor:
-            if pred.cost > earliestDate:
-                earliestDate = pred.cost
+            pred_earliest = self.calc_node_earliest(pred)
+            if pred_earliest[0] + pred.cost > earliestDate:
+                earliestDate = pred_earliest[0] + pred.cost
+                earliestPredecessor = pred
 
-        return
+        return [earliestDate, earliestPredecessor]
+
+    def get_earliest_path(self, node):
+        if node not in self.graph.nodeList:
+            print("Le noeud n'est pas dans le graphe")
+            return False
+
+        total_cost = 0
+        path = []
+    '''
+
