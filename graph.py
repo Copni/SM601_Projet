@@ -50,7 +50,7 @@ class Graphe:
             alpha_node = Node("Alpha", 0)
             omega_node = Node("Omega", 0)
 
-            # Ajouter d'Alpha en tête
+            # Ajout d'Alpha en tête
             self.nodeList.insert(0, alpha_node)
             for node in self.nodeList[1:]:
                 if not node.predecessor:
