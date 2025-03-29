@@ -5,8 +5,12 @@ def test_prog(test_list):
     for test in test_list:
         print("TEST DU FICHIER : ", test)
         test = Graphe(test, test)
-        print("1 - Chargement du graphe \n")
+        print("1 - Chargement du graphe et matrice des valeurs\n")
         test.display_node()
+        """
+        print()
+        test.display_value_matrix()
+        """
         print("\n\n2 - Recherche de coûts négatifs dans le graphe")
         if test.has_negative_cost():
             print("\n On ne peut donc pas ordonnancer ce graphe\n")
@@ -21,5 +25,10 @@ def test_prog(test_list):
         test.display_node()
         print("\n\n5 - Affichage du calendrier final\n")
         test.display_calendar()
+        print("\n\n6 - Affichage des chemins\n")
+        test.display_extrem_path()
+        print("\nChemin critique : ")
+        test.display_critical_path()
+        print("\n")
 
 test_prog(test_list)

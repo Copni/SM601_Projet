@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+
 class Node:
     def __init__(self, id, cost, predecessor=None, successor=None, inDegree=None, rank=None):
         self.id = str(id)
@@ -9,7 +10,7 @@ class Node:
         self.inDegree = inDegree
         self.rank = rank
 
-    def duplicate(self, name = None):
+    def duplicate(self, name=None):
         d = deepcopy(self)
         if name is not None:
             d.id = str(name)
@@ -19,21 +20,22 @@ class Node:
         print(
             f"Nœud {self.id:<10}  Coût : {self.cost:<10}  Prédécesseurs : {' '.join([pred.id for pred in self.predecessor]):<10}  Successeurs : {' '.join([suc.id for suc in self.successor]):<10} Rang : {self.rank if self.rank is not None else 'N/A':<10} Degré entrant : {self.inDegree:<10}")
 
+
 class Graphe:
     def __init__(self, name, file=None):
         self.name = str(name)
         self.nodeList = []  # Liste des nœuds
 
-        if isinstance(file, str) :
+        if isinstance(file, str):
             with open(file, 'r') as f:
                 lines = f.readlines()
 
                 for i in range(len(lines)):
 
-                    node_data = lines[i].strip('\n') # On retire le saut à la ligne
-                    node_data = node_data.split() # On sépare la chaine de caractère à chaque espace
+                    node_data = lines[i].strip('\n')  # On retire le saut à la ligne
+                    node_data = node_data.split()  # On sépare la chaine de caractère à chaque espace
                     node = Node(node_data[0], node_data[1])
-                    if(len(node_data) > 2):
+                    if (len(node_data) > 2):
                         node.predecessor = node_data[2:]
 
                     self.nodeList.append(node)  # Ajout du nœud à la liste
@@ -50,7 +52,7 @@ class Graphe:
             alpha_node = Node("Alpha", 0)
             omega_node = Node("Omega", 0)
 
-            # Ajout d'Alpha en tête
+            # Ajouter d'Alpha en tête
             self.nodeList.insert(0, alpha_node)
             for node in self.nodeList[1:]:
                 if not node.predecessor:
@@ -74,7 +76,7 @@ class Graphe:
                     node.predecessor[i] = self.find_node(node.predecessor[i])
                 for i in range(len(node.successor)):
                     node.successor[i] = self.find_node(node.successor[i])
-        else :
+        else:
             if isinstance(file, list) and all(isinstance(node, Node) for node in file):
                 self.name = name
                 self.nodeList = file
@@ -87,7 +89,7 @@ class Graphe:
                 return self.nodeList[i]
         return False
 
-    def duplicate(self, name = None):
+    def duplicate(self, name=None):
         d = deepcopy(self)
         if name is not None:
             d.name = str(name)
@@ -110,16 +112,16 @@ class Graphe:
                 return True
         print("\n✅ Ce graphe n'a que des coûts positifs")
         return False
-
-    def display_adj_matrix(self):
+    """
+    def display_value_matrix(self):
         n = len(self.nodeList)
         adj = [[0] * n for _ in range(n)]
 
-        # Création de la matrice d'adjacence
+        # Création de la matrice d'adjacence avec les coûts
         for i in range(n):
             for j in range(n):
                 if self.nodeList[j] in self.nodeList[i].successor:
-                    adj[i][j] = 1
+                    adj[i][j] = self.nodeList[j].cost
 
         # Définir les caractères de dessin de boîte
         horizontal = '─'
@@ -153,10 +155,9 @@ class Graphe:
                 print(separator)
             else:
                 footer = f"{bottom_left}{horizontal * 8}{bottom_t}" + f"{horizontal * 8}{bottom_t}" * (
-                            n - 1) + f"{horizontal * 8}{bottom_right}"
+                        n - 1) + f"{horizontal * 8}{bottom_right}"
                 print(footer)
-
-
+    """
     def is_cycling(self):
         n = len(self.nodeList)
         adj = [[0] * n for _ in range(n)]
@@ -222,8 +223,13 @@ class Graphe:
             lines.append(footer)
             return lines
 
+        # Ajustement des espaces
+        esp = " " * 10
+        if len(adj) > 5:
+            esp = esp + " " * (len(adj) - 5) * 3
+
         # Génération de la matrice d'adjacence
-        adj_matrix_text = build_matrix(adj, "Matrice d'adjacence")
+        adj_matrix_text = build_matrix(adj, esp+"Matrice d'adjacence")
 
         # Application de l'algorithme de Roy-Warshall
         for k in range(n):
@@ -280,7 +286,6 @@ class Graphe:
 
             rank += 1
 
-
     def sort_node_by_rank(self):
         self.nodeList.sort(key=lambda node: node.rank)
 
@@ -334,63 +339,108 @@ class Graphe:
 
         return margin
 
+    def display_earliest_path(self, node):
+        path = []
+        current_node = node
+
+        while current_node:
+            path.append(f"{current_node.id} ({current_node.cost})")
+            _, next_node = self.calc_earliest(current_node)
+            current_node = next_node
+
+        print(" -> ".join(path))
+
+    def display_latest_path(self, node):
+        path = []
+        current_node = node
+
+        while current_node:
+            path.append(f"{current_node.id} ({current_node.cost})")
+            _, next_node = self.calc_latest(current_node, self.calc_earliest(self.find_node('Omega'))[0])
+            current_node = next_node
+
+        print(" -> ".join(path))
+
+
+    def display_extrem_path(self):
+        print("Chemin le plus tôt pour chaque nœud:")
+        for node in self.nodeList:
+            self.display_earliest_path(node)
+        print("\nChemin le plus tard pour chaque nœud:")
+        for node in self.nodeList:
+            self.display_latest_path(node)
+
+    def display_critical_path(self):
+        critical_path = []
+        current_node = self.find_node('Alpha')
+        project_duration = self.calc_earliest(self.find_node('Omega'))[0]
+
+        while current_node:
+            critical_path.append(f"{current_node.id} ({current_node.cost})")
+            _, next_node = self.calc_latest(current_node, project_duration)
+            current_node = next_node
+
+        print(" -> ".join(critical_path))
 
     def display_calendar(self):
-            # Trier les nœuds par rang
-            self.sort_node_by_rank()
+        # Trier les nœuds par rang
+        self.sort_node_by_rank()
 
-            # Définir les caractères de dessin de boîte
-            horizontal = '─'
-            vertical = '│'
-            top_left = '┌'
-            top_right = '┐'
-            bottom_left = '└'
-            bottom_right = '┘'
-            cross = '┼'
-            left_t = '├'
-            right_t = '┤'
-            top_t = '┬'
-            bottom_t = '┴'
+        # Définir les caractères de dessin de boîte
+        horizontal = '─'
+        vertical = '│'
+        top_left = '┌'
+        top_right = '┐'
+        bottom_left = '└'
+        bottom_right = '┘'
+        cross = '┼'
+        left_t = '├'
+        right_t = '┤'
+        top_t = '┬'
+        bottom_t = '┴'
 
-            # Construire les lignes du tableau
-            ranks = [str(node.rank) for node in self.nodeList if node.rank is not None]
-            nodes = [f"{node.id} ({node.cost})" for node in self.nodeList]
-            predecessors = [', '.join(pred.id for pred in node.predecessor) for node in self.nodeList]
-            earliest_dates = [
-                f"{self.calc_earliest(node)[0]} ({self.calc_earliest(node)[1].id if self.calc_earliest(node)[1] else ''})"
-                for node in self.nodeList]
-            latest_dates = [
-                f"{self.calc_latest(node, self.calc_earliest(self.find_node('Omega'))[0])[0]} ({self.calc_latest(node, self.calc_earliest(self.find_node('Omega'))[0])[1].id if self.calc_latest(node, self.calc_earliest(self.find_node('Omega'))[0])[1] else ''})"
-                for node in self.nodeList]
-            margins = [str(self.calc_margins(node, self.calc_earliest(self.find_node('Omega'))[0])) for node in self.nodeList]
+        # Construire les lignes du tableau
+        ranks = [str(node.rank) for node in self.nodeList if node.rank is not None]
+        nodes = [f"{node.id} ({node.cost})" for node in self.nodeList]
+        predecessors = [', '.join(pred.id for pred in node.predecessor) for node in self.nodeList]
+        earliest_dates = [
+            f"{self.calc_earliest(node)[0]} ({self.calc_earliest(node)[1].id if self.calc_earliest(node)[1] else ''})"
+            for node in self.nodeList]
+        latest_dates = [
+            f"{self.calc_latest(node, self.calc_earliest(self.find_node('Omega'))[0])[0]} ({self.calc_latest(node, self.calc_earliest(self.find_node('Omega'))[0])[1].id if self.calc_latest(node, self.calc_earliest(self.find_node('Omega'))[0])[1] else ''})"
+            for node in self.nodeList]
+        margins = [str(self.calc_margins(node, self.calc_earliest(self.find_node('Omega'))[0])) for node in
+                   self.nodeList]
 
-            # Déterminer la largeur des colonnes
-            max_rank_width = max(len("rang"), max(len(rank) for rank in ranks))
-            max_node_width = max(len("Noeud et coût"), max(len(node) for node in nodes))
-            max_pred_width = max(len("Prédécesseurs"), max(len(pred) for pred in predecessors))
-            max_earliest_width = max(len("Date au plus tôt"), max(len(date) for date in earliest_dates))
-            max_latest_width = max(len("Date au plus tard"), max(len(date) for date in latest_dates))
-            max_margin_width = max(len("Marge totale"), max(len(margin) for margin in margins))
+        # Déterminer la largeur des colonnes
+        max_rank_width = max(len("rang"), max(len(rank) for rank in ranks))
+        max_node_width = max(len("Noeud et coût"), max(len(node) for node in nodes))
+        max_pred_width = max(len("Prédécesseurs"), max(len(pred) for pred in predecessors))
+        max_earliest_width = max(len("Date au plus tôt"), max(len(date) for date in earliest_dates))
+        max_latest_width = max(len("Date au plus tard"), max(len(date) for date in latest_dates))
+        max_margin_width = max(len("Marge totale"), max(len(margin) for margin in margins))
 
-            # Construire la première ligne (rangs)
-            first_line = f"{top_left}{horizontal * (max_rank_width + 2)}{top_t}{horizontal * (max_node_width + 2)}{top_t}{horizontal * (max_pred_width + 2)}{top_t}{horizontal * (max_earliest_width + 2)}{top_t}{horizontal * (max_latest_width + 2)}{top_t}{horizontal * (max_margin_width + 2)}{top_right}"
-            second_line = f"{vertical} {'rang'.ljust(max_rank_width)} {vertical} {'Noeud et coût'.ljust(max_node_width)} {vertical} {'Prédécesseurs'.ljust(max_pred_width)} {vertical} {'Date au plus tôt'.ljust(max_earliest_width)} {vertical} {'Date au plus tard'.ljust(max_latest_width)} {vertical} {'Marge totale'.ljust(max_margin_width)} {vertical}"
-            third_line = f"{left_t}{horizontal * (max_rank_width + 2)}{cross}{horizontal * (max_node_width + 2)}{cross}{horizontal * (max_pred_width + 2)}{cross}{horizontal * (max_earliest_width + 2)}{cross}{horizontal * (max_latest_width + 2)}{cross}{horizontal * (max_margin_width + 2)}{right_t}"
+        # Construire la première ligne (rangs)
+        first_line = f"{top_left}{horizontal * (max_rank_width + 2)}{top_t}{horizontal * (max_node_width + 2)}{top_t}{horizontal * (max_pred_width + 2)}{top_t}{horizontal * (max_earliest_width + 2)}{top_t}{horizontal * (max_latest_width + 2)}{top_t}{horizontal * (max_margin_width + 2)}{top_right}"
+        second_line = f"{vertical} {'rang'.ljust(max_rank_width)} {vertical} {'Noeud et coût'.ljust(max_node_width)} {vertical} {'Prédécesseurs'.ljust(max_pred_width)} {vertical} {'Date au plus tôt'.ljust(max_earliest_width)} {vertical} {'Date au plus tard'.ljust(max_latest_width)} {vertical} {'Marge totale'.ljust(max_margin_width)} {vertical}"
+        third_line = f"{left_t}{horizontal * (max_rank_width + 2)}{cross}{horizontal * (max_node_width + 2)}{cross}{horizontal * (max_pred_width + 2)}{cross}{horizontal * (max_earliest_width + 2)}{cross}{horizontal * (max_latest_width + 2)}{cross}{horizontal * (max_margin_width + 2)}{right_t}"
 
-            # Construire les lignes de données
-            data_lines = []
-            for rank, node, pred, earliest, latest, margin in zip(ranks, nodes, predecessors, earliest_dates, latest_dates, margins):
-                data_lines.append(f"{vertical} {rank.ljust(max_rank_width)} {vertical} {node.ljust(max_node_width)} {vertical} {pred.ljust(max_pred_width)} {vertical} {earliest.ljust(max_earliest_width)} {vertical} {latest.ljust(max_latest_width)} {vertical} {margin.ljust(max_margin_width)} {vertical}")
+        # Construire les lignes de données
+        data_lines = []
+        for rank, node, pred, earliest, latest, margin in zip(ranks, nodes, predecessors, earliest_dates, latest_dates,
+                                                              margins):
+            data_lines.append(
+                f"{vertical} {rank.ljust(max_rank_width)} {vertical} {node.ljust(max_node_width)} {vertical} {pred.ljust(max_pred_width)} {vertical} {earliest.ljust(max_earliest_width)} {vertical} {latest.ljust(max_latest_width)} {vertical} {margin.ljust(max_margin_width)} {vertical}")
 
-            # Construire la dernière ligne
-            last_line = f"{bottom_left}{horizontal * (max_rank_width + 2)}{bottom_t}{horizontal * (max_node_width + 2)}{bottom_t}{horizontal * (max_pred_width + 2)}{bottom_t}{horizontal * (max_earliest_width + 2)}{bottom_t}{horizontal * (max_latest_width + 2)}{bottom_t}{horizontal * (max_margin_width + 2)}{bottom_right}"
+        # Construire la dernière ligne
+        last_line = f"{bottom_left}{horizontal * (max_rank_width + 2)}{bottom_t}{horizontal * (max_node_width + 2)}{bottom_t}{horizontal * (max_pred_width + 2)}{bottom_t}{horizontal * (max_earliest_width + 2)}{bottom_t}{horizontal * (max_latest_width + 2)}{bottom_t}{horizontal * (max_margin_width + 2)}{bottom_right}"
 
-            # Afficher le tableau
-            print(first_line)
-            print(second_line)
-            print(third_line)
-            for line in data_lines:
-                print(line)
-            print(last_line)
+        # Afficher le tableau
+        print(first_line)
+        print(second_line)
+        print(third_line)
+        for line in data_lines:
+            print(line)
+        print(last_line)
 
 
