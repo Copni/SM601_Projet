@@ -112,16 +112,16 @@ class Graphe:
                 return True
         print("\n✅ Ce graphe n'a que des coûts positifs")
         return False
-    """
+
     def display_value_matrix(self):
         n = len(self.nodeList)
-        adj = [[0] * n for _ in range(n)]
+        adj = [[None] * n for _ in range(n)]
 
-        # Création de la matrice d'adjacence avec les coûts
+        # Création de la matrice de valeur avec les coûts
         for i in range(n):
-            for j in range(n):
-                if self.nodeList[j] in self.nodeList[i].successor:
-                    adj[i][j] = self.nodeList[j].cost
+            for successor in self.nodeList[i].successor:
+                j = self.nodeList.index(successor)
+                adj[i][j] = self.nodeList[i].cost  # Le coût est celui du nœud source
 
         # Définir les caractères de dessin de boîte
         horizontal = '─'
@@ -137,27 +137,29 @@ class Graphe:
         bottom_t = '┴'
 
         # Construire la première ligne (en-tête)
-        header = f"{top_left}{horizontal * 8}{top_t}" + f"{horizontal * 8}{top_t}" * (
-                    n - 1) + f"{horizontal * 8}{top_right}"
+        header = f"{top_left}{horizontal * 8}{top_t}" + f"{horizontal * 8}{top_t}" * (n - 1) + f"{horizontal * 8}{top_right}"
         print(header)
         header = f"{vertical}{'':^8}{vertical}" + "".join(f"{node.id:^8}{vertical}" for node in self.nodeList)
         print(header)
-        separator = f"{left_t}{horizontal * 8}{cross}" + f"{horizontal * 8}{cross}" * (
-                    n - 1) + f"{horizontal * 8}{right_t}"
+        separator = f"{left_t}{horizontal * 8}{cross}" + f"{horizontal * 8}{cross}" * (n - 1) + f"{horizontal * 8}{right_t}"
         print(separator)
 
         # Affichage de chaque ligne de la matrice
         for i in range(n):
             row = f"{vertical}{self.nodeList[i].id:^8}{vertical}" + "".join(
-                f"{adj[i][j] if adj[i][j] != 0 else '':^8}{vertical}" for j in range(n))
+                f"{adj[i][j] if adj[i][j] is not None else '':^8}{vertical}" for j in range(n))
             print(row)
             if i < n - 1:
                 print(separator)
             else:
-                footer = f"{bottom_left}{horizontal * 8}{bottom_t}" + f"{horizontal * 8}{bottom_t}" * (
-                        n - 1) + f"{horizontal * 8}{bottom_right}"
+                footer = f"{bottom_left}{horizontal * 8}{bottom_t}" + f"{horizontal * 8}{bottom_t}" * (n - 1) + f"{horizontal * 8}{bottom_right}"
                 print(footer)
-    """
+
+
+
+
+
+
     def is_cycling(self):
         n = len(self.nodeList)
         adj = [[0] * n for _ in range(n)]
@@ -283,6 +285,44 @@ class Graphe:
 
                 # On supprime le noeud racine de la liste temporaire
                 tmp_graph.nodeList.remove(root)
+
+            rank += 1
+
+    def calc_node_rank_explained(self):
+        tmp_graph = self.duplicate("duplicate_graph")
+
+        # On initialise le rang
+        rank = 0
+
+        print("On utilise la méthode d’élimination des points d’entrée\n")
+
+        # On applique l'algorithme de suppression de nœud
+        while tmp_graph.nodeList:
+            # Trouver tous les nœuds sans prédécesseurs
+            zero_in_degree_nodes = [node for node in tmp_graph.nodeList if not node.predecessor]
+
+            if not zero_in_degree_nodes:
+                print("Cycle détecté, impossible de calculer les rangs")
+                return
+
+            print("Points d’entrée :", " ".join(node.id for node in zero_in_degree_nodes))
+            print("Suppression des points d’entrée")
+
+            # Suppression des nœuds racines
+            for root in zero_in_degree_nodes:
+                for suc in root.successor:
+                    suc.inDegree -= 1
+                    suc.predecessor.remove(root)
+
+                for i in self.nodeList:
+                    if root.id == i.id:
+                        i.rank = rank
+
+                tmp_graph.nodeList.remove(root)
+
+            remaining_nodes = " ".join(node.id for node in tmp_graph.nodeList) if tmp_graph.nodeList else "Aucun"
+            print("Sommets restant :", remaining_nodes)
+            print()
 
             rank += 1
 

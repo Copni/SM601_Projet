@@ -7,10 +7,8 @@ def test_prog(test_list):
         test = Graphe(test, test)
         print("1 - Chargement du graphe et matrice des valeurs\n")
         test.display_node()
-        """
         print()
         test.display_value_matrix()
-        """
         print("\n\n2 - Recherche de coûts négatifs dans le graphe")
         if test.has_negative_cost():
             print("\n On ne peut donc pas ordonnancer ce graphe\n")
@@ -20,7 +18,7 @@ def test_prog(test_list):
             print("\n On ne peut donc pas ordonnancer ce graphe\n")
             continue
         print("\n\n4 - Calcul du rang de chaque noeud\n")
-        test.calc_node_rank()
+        test.calc_node_rank_explained()
         test.sort_node_by_rank()
         test.display_node()
         print("\n\n5 - Affichage du calendrier final\n")
