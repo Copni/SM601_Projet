@@ -1,5 +1,8 @@
 from graph import *
-test_list = ["exemple_cours.txt", "table 1.txt", "table 2.txt", "table 3.txt", "table 4.txt", "table 5.txt", "table 6.txt", "table 7.txt", "table 8.txt", "table 9.txt", "table 10.txt", "table 11.txt", "table 12.txt", "table 13.txt", "table 14.txt"]
+import os
+
+test_list = ['exemple_cours.txt', "table 1.txt", "table 2.txt", "table 3.txt", "table 4.txt", "table 5.txt", "table 6.txt", "table 7.txt", "table 8.txt", "table 9.txt", "table 10.txt", "table 11.txt", "table 12.txt", "table 13.txt", "table 14.txt"]
+
 
 def test_prog(test_list):
     for test in test_list:
@@ -29,4 +32,26 @@ def test_prog(test_list):
         test.display_critical_path()
         print("\n")
 
-test_prog(test_list)
+def menu():
+    txt_files = [f for f in os.listdir('.') if f.endswith('.txt')]
+    if not txt_files:
+        print("Aucun fichier .txt trouvé dans le répertoire courant.")
+        return
+
+    print("Sélectionnez un fichier à tester :")
+    for i, file in enumerate(txt_files, 1):
+        print(f"{i}. {file}")
+
+    choice = int(input("Entrez le numéro du fichier (0 pour quitter) : "))
+    if choice == 0:
+        print("Quitter le programme.")
+        return
+    elif 1 <= choice <= len(txt_files):
+        selected_file = txt_files[choice - 1]
+        test_prog([selected_file])
+        menu()
+    else:
+        print("Choix invalide.")
+        menu()
+
+menu()
