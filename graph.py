@@ -411,16 +411,22 @@ class Graphe:
             self.display_latest_path(node)
 
     def display_critical_path(self):
-        critical_path = []
-        current_node = self.find_node('Alpha')
+        critical_paths = []
         project_duration = self.calc_earliest(self.find_node('Omega'))[0]
 
-        while current_node:
-            critical_path.append(f"{current_node.id} ({current_node.cost})")
-            _, next_node = self.calc_latest(current_node, project_duration)
-            current_node = next_node
+        def find_critical_path(node, path):
+            if node.id == 'Omega':  # Si on atteint Omega, on ajoute le chemin
+                critical_paths.append(" -> ".join(path))
+                return
+            for succ in node.successor:
+                if self.calc_margins(succ, project_duration) == 0:  # Vérifie si le successeur est critique
+                    find_critical_path(succ, path + [f"{succ.id} ({succ.cost})"])
 
-        print(" -> ".join(critical_path))
+        start_node = self.find_node('Alpha')
+        find_critical_path(start_node, [f"{start_node.id} ({start_node.cost})"])
+
+        for path in critical_paths:
+            print(path)
 
     def display_calendar(self):
         # Trier les nœuds par rang
